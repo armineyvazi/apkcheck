@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# setup — install host deps for APKCheck Lab on macOS (best-effort).
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+echo "==> Go"
+command -v go >/dev/null || { echo "install Go 1.22+"; exit 1; }
+
+echo "==> Homebrew tools (apktool, jadx, openjdk, mitmproxy, platform-tools)"
+if command -v brew >/dev/null; then
+  brew list apktool >/dev/null 2>&1 || brew install apktool
+  brew list openjdk@17 >/dev/null 2>&1 || brew install openjdk@17
+  brew list android-platform-tools >/dev/null 2>&1 || brew install android-platform-tools
+  brew list mitmproxy >/dev/null 2>&1 || brew install mitmproxy || true
+  brew list jadx >/dev/null 2>&1 || brew install jadx || true
+else
+  echo "brew not found — install tools manually"
+fi
+
+echo "==> Build CLI"
+mkdir -p bin
+go build -o bin/apkcheck ./cmd/apkcheck
+
+echo "==> React UI"
+if command -v npm >/dev/null; then
+  (cd web && npm install && npm run build)
+else
+  echo "npm missing — UI will use API fallback HTML"
+fi
+
+echo "==> Doctor"
+./bin/apkcheck doctor || true
+echo "Done. Run: ./scripts/dev"

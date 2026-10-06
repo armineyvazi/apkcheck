@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="34" android:compileSdkVersionCodename="14" package="com.apkcheck.testharness" platformBuildVersionCode="34" platformBuildVersionName="14">
+    <application android:allowBackup="false" android:debuggable="true" android:label="@string/app_name">
+        <activity android:exported="true" android:name="com.apkcheck.testharness.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:exported="true" android:name="com.apkcheck.testharness.ProbeActivity">
+            <intent-filter>
+                <action android:name="com.apkcheck.testharness.PROBE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

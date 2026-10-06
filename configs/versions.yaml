@@ -1,0 +1,73 @@
+# APKCheck pinned decompiler version matrix.
+# Edit this file to add/remove versions — do NOT hard-code versions in Go.
+#
+# Rules:
+# - Never use "latest"
+# - Every version must have a fixed source URL and SHA-256
+# - Changing a pin requires an intentional edit + re-verify
+
+java:
+  default: "17"
+
+# Global defaults for analyze --versions
+defaults:
+  enable_version_matrix: false
+  runners:
+    - local
+    # - docker
+
+decompilers:
+  jadx:
+    # Host PATH jadx is used when no pinned path exists (recorded as "host").
+    # Add pinned installs under tools/versions/jadx/<id>/ after verifying SHA-256.
+    versions:
+      - id: "host"
+        note: "Uses jadx from PATH. Prefer pinning exact releases for reproducibility."
+        source: "path:jadx"
+        sha256: ""
+        java: "17"
+        runner: local
+        binary: "jadx"
+        enabled: true
+
+      # Example pin (disabled until artifact is installed + sha256 filled):
+      # - id: "1.5.6"
+      #   source: "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip"
+      #   sha256: "REPLACE_AFTER_DOWNLOAD"
+      #   java: "17"
+      #   runner: local
+      #   path: "tools/versions/jadx/1.5.6/bin/jadx"
+      #   docker_image: "apkcheck-jadx:1.5.6"
+      #   enabled: false
+
+  cfr:
+    versions:
+      - id: "0.152"
+        source: "https://repo1.maven.org/maven2/org/benf/cfr/0.152/cfr-0.152.jar"
+        sha256: "f686e8f3ded377d7bc87d216a90e9e9512df4156e75b06c655a16648ae8765b2"
+        java: "17"
+        runner: local
+        path: "tools/cfr-0.152.jar"
+        docker_image: "apkcheck-cfr:0.152"
+        enabled: true
+
+  fernflower:
+    versions:
+      - id: "host"
+        note: "Uses Homebrew fernflower launcher from PATH."
+        source: "path:fernflower"
+        sha256: ""
+        java: "17"
+        runner: local
+        binary: "fernflower"
+        enabled: true
+
+apktool:
+  versions:
+    - id: "host"
+      source: "path:apktool"
+      sha256: ""
+      java: "17"
+      runner: local
+      binary: "apktool"
+      enabled: true

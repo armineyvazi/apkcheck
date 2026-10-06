@@ -1,0 +1,16 @@
+version: 2.9.3
+apkFileName: lab-mini.apk
+isFrameworkApk: false
+usesFramework:
+  ids:
+  - 1
+sdkInfo:
+  minSdkVersion: 21
+  targetSdkVersion: 34
+packageInfo:
+  renameManifestPackage: null
+versionInfo:
+  versionCode: 1
+  versionName: 1.0
+doNotCompress:
+- resources.arsc

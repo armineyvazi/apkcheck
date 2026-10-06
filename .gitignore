@@ -1,0 +1,11 @@
+bin/
+dist/
+analysis/
+result/
+lab-data/
+web/node_modules/
+web/dist/
+*.apk
+.DS_Store
+coverage.out
+tools/*.tmp

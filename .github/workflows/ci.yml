@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install UI dependencies
+        run: npm ci --prefix web
+
+      - name: Build UI
+        run: npm run build --prefix web
+
+      - name: Build binary
+        run: go build -v ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+      - name: Test (race detector)
+        run: go test -race ./internal/lab/runtimes/... ./internal/lab/pipeline/... ./internal/mcp/... ./internal/lab/iocscan/... ./internal/lab/frida/...
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+  release:
+    name: Release binary
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build UI
+        run: |
+          npm ci --prefix web
+          npm run build --prefix web
+
+      - name: Build release binaries
+        run: |
+          GOOS=linux   GOARCH=amd64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/apkcheck-linux-amd64   ./cmd/apkcheck
+          GOOS=linux   GOARCH=arm64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/apkcheck-linux-arm64   ./cmd/apkcheck
+          GOOS=darwin  GOARCH=amd64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/apkcheck-darwin-amd64  ./cmd/apkcheck
+          GOOS=darwin  GOARCH=arm64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/apkcheck-darwin-arm64  ./cmd/apkcheck
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o dist/apkcheck-windows-amd64.exe ./cmd/apkcheck
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/apkcheck-linux-amd64
+            dist/apkcheck-linux-arm64
+            dist/apkcheck-darwin-amd64
+            dist/apkcheck-darwin-arm64
+            dist/apkcheck-windows-amd64.exe
+            dist/SHA256SUMS
+          generate_release_notes: true

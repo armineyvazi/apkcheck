@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "apkcheck": {
+      "command": "/Users/armin/Library/CloudStorage/Dropbox/coding/sec/apkcheck/bin/apkcheck",
+      "args": ["mcp"],
+      "env": {
+        "ANDROID_HOME": "/opt/homebrew/share/android-commandlinetools",
+        "ANDROID_SDK_ROOT": "/opt/homebrew/share/android-commandlinetools"
+      }
+    }
+  }
+}

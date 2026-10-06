@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# dev — thin wrapper around: apkcheck lab ui
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+mkdir -p bin
+go build -o bin/apkcheck ./cmd/apkcheck
+
+WS="${APKCHECK_LAB_WORKSPACE:-./lab-data}"
+ADDR="${APKCHECK_LAB_ADDR:-:8787}"
+EXTRA=()
+if [[ "${1:-}" == "dev" ]]; then
+  EXTRA+=(--dev)
+  shift || true
+fi
+exec ./bin/apkcheck lab ui --workspace "$WS" --addr "$ADDR" --no-open "${EXTRA[@]}" "$@"

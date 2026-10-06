@@ -1,0 +1,16 @@
+# APKCheck CI gates — used by: apkcheck ci app.apk --config configs/ci.yaml
+# Only STATIC_EVIDENCE at/above fail_on fails the build.
+# INFERENCE alone never fails CI.
+# NOT OBSERVED ≠ ABSENT — runtime absence is never a pass criterion.
+
+security:
+  fail_on: high   # low | medium | high | critical
+
+decompiler:
+  disagreement_threshold: 10
+
+semantic:
+  minimum_confidence: medium   # high | medium | low
+
+secrets:
+  fail_on_high: true

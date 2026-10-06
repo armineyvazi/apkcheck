@@ -1,0 +1,17 @@
+bin/
+analysis/
+result/
+lab-data/
+**/node_modules/
+web/dist/
+.git/
+.DS_Store
+*.apk
+coverage.out
+**/*.tmp
+divar-lab/
+exports/
+obsi/
+agent-transcripts/
+**/.cursor/
+**/terminals/

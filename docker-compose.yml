@@ -1,0 +1,87 @@
+# APKCheck Lab — docker compose
+#
+#   docker compose up -d lab          # start (builds if needed)
+#   docker compose logs -f lab        # tail logs
+#   docker compose down               # stop
+#
+# Optional env overrides (create a .env file or export before running):
+#   APKCHECK_LAB_DIR    host path to workspace    (default: ./workspace)
+#   APKCHECK_ANDROID_SDK  host path to Android SDK  (default: empty stub)
+#   APKCHECK_ANDROID_HOME host path to .android dir  (default: empty stub)
+#   APKCHECK_ADB_HOST   host:port of remote adb   (default: unset)
+#   APKCHECK_PORT       exposed port               (default: 8787)
+#
+# KVM (Linux only) — add --profile kvm to enable hardware emulation:
+#   docker compose --profile kvm up -d lab
+
+services:
+  lab:
+    image: apkcheck:0.1
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APKCHECK_PORT:-8787}:8787"
+    volumes:
+      - ${APKCHECK_LAB_DIR:-./workspace}:/data/lab
+      - ${APKCHECK_ANDROID_SDK:-./workspace/android-sdk}:/opt/android-sdk:ro
+      - ${APKCHECK_ANDROID_HOME:-./workspace/android-home}:/root/.android:ro
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      APKCHECK_ADB_HOST: ${APKCHECK_ADB_HOST:-}
+      APKCHECK_EMU_HEADLESS: "1"
+    user: "0:0"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost:8787/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  lab-kvm:
+    image: apkcheck:0.1
+    platform: linux/amd64
+    profiles: ["kvm"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APKCHECK_PORT:-8787}:8787"
+    volumes:
+      - ${APKCHECK_LAB_DIR:-./workspace}:/data/lab
+      - ${APKCHECK_ANDROID_SDK:-./workspace/android-sdk}:/opt/android-sdk:ro
+      - ${APKCHECK_ANDROID_HOME:-./workspace/android-home}:/root/.android:ro
+    devices:
+      - /dev/kvm:/dev/kvm
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      APKCHECK_ADB_HOST: ${APKCHECK_ADB_HOST:-}
+      APKCHECK_EMU_HEADLESS: "1"
+    user: "0:0"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost:8787/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  cli:
+    image: apkcheck:0.1
+    platform: linux/amd64
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ${APKCHECK_LAB_DIR:-./workspace}:/data/lab
+      - ${APKCHECK_ANDROID_SDK:-./workspace/android-sdk}:/opt/android-sdk:ro
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+    entrypoint: ["/opt/apkcheck/apkcheck"]
+    command: ["doctor"]

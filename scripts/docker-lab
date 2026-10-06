@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# docker-lab — build & run APKCheck Lab (linux/amd64) via Docker Compose.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+PLATFORM="${PLATFORM:-linux/amd64}"
+export DOCKER_DEFAULT_PLATFORM="$PLATFORM"
+
+cmd="${1:-up}"
+shift || true
+
+case "$cmd" in
+  build)
+    docker compose build "$@"
+    ;;
+  up)
+    docker compose up -d lab "$@"
+    echo "Lab UI → http://127.0.0.1:8787"
+    ;;
+  down)
+    docker compose down "$@"
+    ;;
+  logs)
+    docker compose logs -f lab "$@"
+    ;;
+  doctor)
+    docker compose run --rm cli doctor "$@"
+    ;;
+  cli)
+    docker compose run --rm cli "$@"
+    ;;
+  *)
+    echo "Usage: $0 {build|up|down|logs|doctor|cli} [args...]"
+    echo "  PLATFORM=linux/amd64 $0 build"
+    exit 2
+    ;;
+esac

@@ -1,0 +1,52 @@
+# apkcheck.yaml — optional host config (not hard-coded in Go).
+# Copy next to the binary or set APKCHECK_CONFIG.
+
+runtime:
+  enabled: true
+  mode: auto          # auto | device | emulator
+  warn_untrusted: true
+
+  emulator:
+    avd: ""
+    boot_timeout: 360s
+    cold_boot: false
+    snapshot: ""
+
+  installation:
+    reinstall: true
+    clear_data: true
+    skip_install: false
+
+  execution:
+    launch: true
+    timeout: 120s
+    activity: ""      # override launchable activity
+
+  logcat:
+    enabled: true
+    raw: true
+    duration: 20s   # post-scenario capture window (not the whole execution timeout)
+
+  screenshots:
+    enabled: false
+
+  network:
+    enabled: true
+    capture_connections: true
+    mitm: false       # NEVER enable by default
+
+  instrumentation:
+    enabled: false
+    provider: ""      # optional: frida (also: apkcheck hunt --frida)
+
+  scenarios:
+    - name: startup
+      actions:
+        - launch
+        - wait: 10s
+
+  cleanup:
+    clear_data: false
+    uninstall: false
+    shutdown: false
+    keep_emulator: true
