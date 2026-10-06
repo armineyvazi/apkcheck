@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/armin/apkcheck/internal/lab/events"
 	"github.com/armin/apkcheck/internal/lab/frida"
@@ -44,6 +45,13 @@ func (s *Server) handleFridaPush(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.HostPath == "" {
 		writeJSON(w, 400, map[string]string{"error": "host_path required"})
+		return
+	}
+	// Validate that the path is an existing regular file before ADB push.
+	// This is a local developer tool; do not expose this endpoint on a
+	// public network interface.
+	if fi, err := os.Stat(req.HostPath); err != nil || !fi.Mode().IsRegular() {
+		writeJSON(w, 400, map[string]string{"error": "host_path must be an existing regular file"})
 		return
 	}
 	if err := s.fridaMgr().PushServer(r.Context(), req.Serial, req.HostPath); err != nil {

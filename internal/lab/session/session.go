@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -18,6 +19,10 @@ import (
 	"github.com/armin/apkcheck/internal/lab"
 	"github.com/armin/apkcheck/internal/lab/events"
 )
+
+// safeIDRe matches IDs produced by lab.NewID — prefix + digits + hyphens only.
+// Rejecting anything else prevents path traversal via user-supplied IDs.
+var safeIDRe = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9\-]{1,80}$`)
 
 // Kind classifies how the run was started.
 type Kind string
@@ -109,6 +114,14 @@ func (m *Manager) runDir(id string) string {
 	return filepath.Join(m.Root, "sessions", id)
 }
 
+// validateID returns an error when id could cause path traversal.
+func validateID(id string) error {
+	if !safeIDRe.MatchString(id) {
+		return fmt.Errorf("invalid id: %q", id)
+	}
+	return nil
+}
+
 // StartOptions configures a new test run.
 type StartOptions struct {
 	Kind          Kind
@@ -162,6 +175,9 @@ func (m *Manager) Start(opt StartOptions) (*Run, error) {
 
 // Get loads a run (live or disk).
 func (m *Manager) Get(id string) (*Run, error) {
+	if err := validateID(id); err != nil {
+		return nil, err
+	}
 	m.mu.Lock()
 	if lr, ok := m.live[id]; ok {
 		cp := *lr.run
@@ -204,6 +220,9 @@ func (m *Manager) List() ([]*Run, error) {
 
 // AddEvent appends a timeline event using the run clock.
 func (m *Manager) AddEvent(runID string, ev Event) (*Event, error) {
+	if err := validateID(runID); err != nil {
+		return nil, err
+	}
 	m.mu.Lock()
 	lr, ok := m.live[runID]
 	var t0 time.Time
@@ -336,6 +355,9 @@ func (m *Manager) RecentFeed(maxRuns, maxEvents int) []events.Event {
 
 // ListEvents returns timeline events sorted by offset.
 func (m *Manager) ListEvents(runID string) ([]Event, error) {
+	if err := validateID(runID); err != nil {
+		return nil, err
+	}
 	m.mu.Lock()
 	if lr, ok := m.live[runID]; ok && len(lr.events) > 0 {
 		out := append([]Event(nil), lr.events...)

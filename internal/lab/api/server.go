@@ -99,6 +99,10 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	s.handleIndex(w, r)
 }
 
+// withCORS allows any origin. This server is a local developer tool that binds
+// to loopback by default; the wildcard lets the Vite dev server (different port)
+// and MCP clients reach the API without configuration. Do not expose this port
+// on a public network interface.
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
