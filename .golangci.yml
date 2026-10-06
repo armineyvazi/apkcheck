@@ -1,0 +1,18 @@
+run:
+  timeout: 5m
+  # Override the go version golangci-lint uses for analysis.
+  # golangci-lint is built with an older Go toolchain and refuses to
+  # run when go.mod declares a newer version than it was compiled with.
+  # Setting this to the version golangci-lint was built with allows it
+  # to run; linters still catch real issues.
+  go: "1.24"
+
+linters:
+  disable-all: false
+
+issues:
+  exclude-rules:
+    # Test files may use t.Fatal/t.Error patterns not caught by errcheck.
+    - path: _test\.go
+      linters:
+        - errcheck
