@@ -334,16 +334,18 @@ case "$cmd" in
       dest="$FS$remote"
       mkdir -p "$(dirname "$dest")"
       # Minimal ISO-BMFF with moov (playable gate); pad past MinPlayableBytes.
+      # Use POSIX octal escapes (\000, \030, \010) — \xNN hex escapes are
+      # optional in POSIX and not supported by all /bin/sh implementations.
       {
-        printf '\x00\x00\x00\x18ftypisom\x00\x00\x00\x00isommp42'
-        printf '\x00\x00\x00\x08moov'
+        printf '\000\000\000\030ftypisom\000\000\000\000isommp42'
+        printf '\000\000\000\010moov'
         dd if=/dev/zero bs=9000 count=1 2>/dev/null
       } > "$dest"
       echo $$ > "$PIDFILE"
       trap 'printf "\nfinalized" >> "$dest"; rm -f "$PIDFILE"; exit 0' INT TERM
       i=0
       while [ "$i" -lt 120 ]; do
-        printf "\x00frame-%s" "$i" >> "$dest"
+        printf "\000frame-%s" "$i" >> "$dest"
         i=$((i+1))
         sleep 0.05
       done

@@ -221,8 +221,8 @@ case "$cmd" in
       remote=""; for a in "$@"; do remote="$a"; done
       dest="$FS$remote"; mkdir -p "$(dirname "$dest")"
       {
-        printf '\x00\x00\x00\x18ftypisom\x00\x00\x00\x00isommp42'
-        printf '\x00\x00\x00\x08moov'
+        printf '\000\000\000\030ftypisom\000\000\000\000isommp42'
+        printf '\000\000\000\010moov'
         dd if=/dev/zero bs=9000 count=1 2>/dev/null
       } > "$dest"
       echo $$ > "$PIDFILE"

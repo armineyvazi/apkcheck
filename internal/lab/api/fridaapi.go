@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/armin/apkcheck/internal/lab/events"
 	"github.com/armin/apkcheck/internal/lab/frida"
@@ -47,13 +48,20 @@ func (s *Server) handleFridaPush(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 400, map[string]string{"error": "host_path required"})
 		return
 	}
-	// Validate that the path is an existing regular file before ADB push.
-	// This is a local developer tool; do not expose this endpoint on a
-	// public network interface.
-	if fi, err := os.Stat(req.HostPath); err != nil || !fi.Mode().IsRegular() {
+	// Resolve symlinks and confirm the path is a regular file. We do not
+	// restrict to a specific directory — operators need to push binaries from
+	// arbitrary host locations — but we reject symlinks and non-regular files
+	// to prevent tricks that could read unintended content via ADB push.
+	real, statErr := filepath.EvalSymlinks(req.HostPath)
+	if statErr != nil {
+		writeJSON(w, 400, map[string]string{"error": "host_path: " + statErr.Error()})
+		return
+	}
+	if fi, err := os.Stat(real); err != nil || !fi.Mode().IsRegular() {
 		writeJSON(w, 400, map[string]string{"error": "host_path must be an existing regular file"})
 		return
 	}
+	req.HostPath = real
 	if err := s.fridaMgr().PushServer(r.Context(), req.Serial, req.HostPath); err != nil {
 		writeJSON(w, 500, map[string]string{"error": err.Error()})
 		return

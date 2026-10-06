@@ -239,6 +239,8 @@ func (m *Manager) AddEvent(runID string, ev Event) (*Event, error) {
 	}
 	if ev.ID == "" {
 		ev.ID = lab.NewID("event")
+	} else if err := validateID(ev.ID); err != nil {
+		return nil, err
 	}
 	ev.RunID = runID
 	if ev.At.IsZero() {
